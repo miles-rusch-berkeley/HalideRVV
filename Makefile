@@ -20,7 +20,7 @@ ifeq ($(OS), Windows_NT)
     $(error Halide no longer supports the MinGW environment. Please use MSVC through CMake instead.)
 else
     # let's assume "normal" UNIX such as linux
-    COMMON_LD_FLAGS=$(LDFLAGS) -ldl -lpthread -lz
+    COMMON_LD_FLAGS=$(LDFLAGS) -ldl -lpthread # -lz
     FPIC=-fPIC
 ifeq ($(UNAME), Darwin)
     SHARED_EXT=dylib
@@ -225,9 +225,9 @@ CXX_FLAGS += $(WEBASSEMBLY_CXX_FLAGS)
 
 # Serialization requires flatc and flatbuffers.h
 # On ubuntu, this requires packages flatbuffers-compiler and libflatbuffers-dev
-ifneq (,$(shell which flatc))
-CXX_FLAGS += -DWITH_SERIALIZATION -I $(BUILD_DIR) -I $(shell which flatc | sed 's/bin.flatc/include/')
-endif
+# ifneq (,$(shell which flatc))
+# CXX_FLAGS += -DWITH_SERIALIZATION -I $(BUILD_DIR) -I $(shell which flatc | sed 's/bin.flatc/include/')
+# endif
 
 # This is required on some hosts like powerpc64le-linux-gnu because we may build
 # everything with -fno-exceptions.  Without -funwind-tables, libHalide.so fails
@@ -1381,15 +1381,15 @@ $(BIN_DIR)/test_internal: $(ROOT_DIR)/test/internal.cpp $(TEST_DEPS)
 	@mkdir -p $(@D)
 	$(CXX) $(TEST_CXX_FLAGS) $< -I$(SRC_DIR) $(TEST_LD_FLAGS) -o $@
 
-ifneq (,$(shell which flatc))
-$(BUILD_DIR)/Deserialization.o : $(BUILD_DIR)/halide_ir.fbs.h
-$(BUILD_DIR)/Serialization.o : $(BUILD_DIR)/halide_ir.fbs.h
-endif
+# ifneq (,$(shell which flatc))
+# $(BUILD_DIR)/Deserialization.o : $(BUILD_DIR)/halide_ir.fbs.h
+# $(BUILD_DIR)/Serialization.o : $(BUILD_DIR)/halide_ir.fbs.h
+# endif
 
 # Generated header for serialization/deserialization
-$(BUILD_DIR)/halide_ir.fbs.h: $(SRC_DIR)/halide_ir.fbs
-	@mkdir -p $(@D)
-	flatc --cpp --cpp-std C++17 --no-union-value-namespacing --keep-prefix --filename-suffix ".fbs" -o $(BUILD_DIR) $^
+# $(BUILD_DIR)/halide_ir.fbs.h: $(SRC_DIR)/halide_ir.fbs
+# 	@mkdir -p $(@D)
+# 	flatc --cpp --cpp-std C++17 --no-union-value-namespacing --keep-prefix --filename-suffix ".fbs" -o $(BUILD_DIR) $^
 
 # Correctness test that link against libHalide
 $(BIN_DIR)/correctness_%: $(ROOT_DIR)/test/correctness/%.cpp $(TEST_DEPS)
@@ -2071,10 +2071,10 @@ tutorial_%: $(BIN_DIR)/tutorial_% $(TMP_DIR)/images/rgb.png $(TMP_DIR)/images/gr
 	@-echo
 
 # Skip the serialization tutorial, if we didn't build -DWITH_SERIALIZATION
-ifeq (,$(shell which flatc))
-tutorial_lesson_23_serialization:
-	@echo "Skipping tutorial lesson 23 (serialization not enabled) ..."
-endif
+# ifeq (,$(shell which flatc))
+# tutorial_lesson_23_serialization:
+# 	@echo "Skipping tutorial lesson 23 (serialization not enabled) ..."
+# endif
 
 test_mullapudi2016: $(MULLAPUDI2016_TESTS:$(ROOT_DIR)/test/autoschedulers/mullapudi2016/%.cpp=mullapudi2016_%)
 
@@ -2107,6 +2107,8 @@ time_compilation_generator_%: $(BIN_DIR)/%.generator
 	$(TIME_COMPILATION) compile_times_generator.csv make -f $(THIS_MAKEFILE) $(@:time_compilation_generator_%=$(FILTERS_DIR)/%.a)
 
 TEST_APPS=\
+	lens_blur
+# TEST_APPS=\
 	bilateral_grid \
 	bgu \
 	blur \
@@ -2129,6 +2131,7 @@ TEST_APPS=\
 
 TEST_APPS_DEPS=$(TEST_APPS:%=%_test_app)
 BUILD_APPS_DEPS=$(TEST_APPS:%=%_build_app)
+DUMP_APPS_DEPS=$(TEST_APPS:%=%dump_app)
 
 $(BUILD_APPS_DEPS): distrib
 	@echo Building app $(@:%_build_app=%) for ${HL_TARGET}...
@@ -2146,11 +2149,22 @@ $(TEST_APPS_DEPS): distrib
 		HL_TARGET=$(HL_TARGET) \
 		|| exit 1 ; \
 
-.PHONY: test_apps build_apps $(BUILD_APPS_DEPS)
+$(DUMP_APPS_DEPS): distrib
+	@echo OBJDUMP app $(@:%_test_app=%) for ${HL_TARGET}...
+	@$(MAKE) -C $(ROOT_DIR)/apps/$(@:%_test_app=%) dump-riscv \
+		HALIDE_DISTRIB_PATH=$(CURDIR)/$(DISTRIB_DIR) \
+		BIN_DIR=$(CURDIR)/$(BIN_DIR)/apps/$(@:%_test_app=%)/bin \
+		HL_TARGET=$(HL_TARGET) \
+		|| exit 1 ; \
+
+.PHONY: dump_apps test_apps build_apps $(BUILD_APPS_DEPS)
 build_apps: $(BUILD_APPS_DEPS)
 
 test_apps: $(BUILD_APPS_DEPS)
 	$(MAKE) -f $(THIS_MAKEFILE) -j1 $(TEST_APPS_DEPS)
+
+dump_apps: $(BUILD_APPS_DEPS)
+	$(MAKE) -f $(THIS_MAKEFILE) -j1 $(DUMP_APPS_DEPS)
 
 build_hannk: distrib
 	@echo Building apps/hannk for ${HL_TARGET}...

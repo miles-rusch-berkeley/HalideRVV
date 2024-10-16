@@ -1,9 +1,22 @@
 include ../support/Makefile.inc
 
 
-.PHONY: build clean test
+.PHONY: build build-riscv dump-riscv clean test
 
-build: $(BIN)/$(HL_TARGET)/process
+build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv,\
+											 $(BIN)/$(HL_TARGET)/process)
+dump-riscv: $(BIN)/$(HL_TARGET)/process-riscv.dump
+
+$(BIN)/%/process-riscv: process.cpp $(BIN)/%/lens_blur.a $(BIN)/%/lens_blur_auto_schedule.a
+	@mkdir -p $(@D)
+	$(RISCV_GXX) $(RISCV_GXX_OPTS) $(CXXFLAGS) -I$(BIN)/$* -Wall $^ -o $@ $(LDFLAGS) $(CUDA_LDFLAGS) $(OPENCL_LDFLAGS)
+
+$(BIN)/%/out-riscv.print: $(BIN)/%/process-riscv
+	@mkdir -p $(@D)
+	$(RISCV_SIM) $(BIN)/%/process-riscv 128 32 13 0.5 32 3 > $@
+
+$(BIN)/%/process-riscv.dump: $(BIN)/%/process-riscv
+	$(RISCV_OBJDUMP) $< > $@
 
 $(GENERATOR_BIN)/lens_blur.generator: lens_blur_generator.cpp $(GENERATOR_DEPS)
 	@mkdir -p $(@D)
@@ -28,4 +41,5 @@ $(BIN)/%/out.png: $(BIN)/%/process
 clean:
 	rm -rf $(BIN)
 
-test: $(BIN)/$(HL_TARGET)/out.png
+test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/out-riscv.print,\
+											$(BIN)/$(HL_TARGET)/out.png)

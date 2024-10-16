@@ -21,6 +21,24 @@ BIN_DIR ?= bin
 BIN ?= $(BIN_DIR)
 HL_TARGET ?= host
 
+# RISCV Tools
+XLEN ?= 64
+ifneq (,$(findstring noos,$(HL_TARGET)))
+RISCV_PREFIX ?= $(RISCV)/bin/riscv$(XLEN)-unknown-elf-
+RISCV_TOOLCHAIN_OPTS ?= -I $(RISCV)/riscv64-unknown-elf/include/c++/13.2.0 -specs=htif_nano.specs 
+RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv 
+else ifneq (,$(findstring linux,$(HL_TARGET)))
+RISCV_PREFIX ?= $(RISCV)/bin/riscv$(XLEN)-unknown-linux-gnu-
+RISCV_TOOLCHAIN_OPTS ?= -I $(RISCV)/riscv64-unknown-linux-gnu/include
+RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv $(RISCV)/riscv64-unknown-elf/bin/pk 
+endif
+RISCV_GCC ?= $(RISCV_PREFIX)gcc
+RISCV_GXX ?= $(RISCV_PREFIX)g++
+RISCV_COMMON_OPTS ?= $(RISCV_TOOLCHAIN_OPTS) -DPREALLOCATE=1 -mcmodel=medany -static -O2 -g -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv$(XLEN)gcv_zfh_zvfh -mabi=lp64d
+RISCV_GCC_OPTS ?= $(RISCV_COMMON_OPTS) -std=gnu99
+RISCV_GXX_OPTS ?= $(RISCV_COMMON_OPTS) -std=c++17
+RISCV_OBJDUMP ?= $(RISCV_PREFIX)objdump -C -D -S --disassemble-all --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data
+
 # Running examples on Hexagon requires Hexagon_SDK
 SDK_ROOT ?= ${HOME}/Qualcomm
 HEXAGON_SDK_ROOT ?= ${SDK_ROOT}/Hexagon_SDK/4.0.0
@@ -42,7 +60,7 @@ GENERATOR_OUTPUTS ?= static_library,h,registration,stmt,assembly
 # This pulls in the definition of HALIDE_SYSTEM_LIBS and HALIDE_RTTI
 include $(HALIDE_DISTRIB_PATH)/halide_config.make
 
-LDFLAGS += -ldl -lpthread -lz
+LDFLAGS += -ldl -lpthread # -lz
 
 CXX ?= g++
 GXX ?= g++
