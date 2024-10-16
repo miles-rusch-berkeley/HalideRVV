@@ -28,22 +28,17 @@ int main(int argc, char **argv) {
     halide_enable_malloc_trace();
 #endif
 
-    // fprintf(stderr, "input: %s\n", argv[1]);
+    fprintf(stderr, "input dim: %s\n", argv[1]);
     // Buffer<uint16_t, 2> input = load_and_convert_image(argv[1]);
-    // fprintf(stderr, "       %d %d\n", input.width(), input.height());
     int matrix_size = atoi(argv[1]);
-    Buffer<uint16_t, 2> left_im(matrix_size, matrix_size, 2);
-    Buffer<uint16_t, 2> right_im(matrix_size, matrix_size, 2);
-
+    Buffer<uint16_t, 2> input(matrix_size, matrix_size);
     // Initialize gradient images
-    for (int z = 0; z < 2; z++) {
-        for (int iy = 0; iy < matrix_size; iy++) {
-            for (int ix = 0; ix < matrix_size; ix++) {
-                left_im(ix, iy, z) = static_cast<uint8_t>((ix + iy + z) % 256);
-                right_im(ix, iy, z) = static_cast<uint8_t>((ix + iy + z) % 256);
-            }
+    for (int iy = 0; iy < matrix_size; iy++) {
+        for (int ix = 0; ix < matrix_size; ix++) {
+            input(ix, iy) = static_cast<uint16_t>((ix + iy) % 256);
         }
     }
+    fprintf(stderr, "       %d %d\n", input.width(), input.height());
     Buffer<uint8_t, 3> output(((input.width() - 32) / 32) * 32, ((input.height() - 24) / 32) * 32, 3);
 
 #ifdef HL_MEMINFO
@@ -97,17 +92,10 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Halide (auto):\t%gus\n", best * 1e6);
 #endif
 
-    printf("left input\n");
+    printf("input\n");
     for (int iy = 0; iy < matrix_size; iy++) {
 	    for (int ix = 0; ix < matrix_size; ix++) {
-		     	printf("%d,",left_im(ix,iy));
-			    }
-	        printf("\n");
-    }
-    printf("right_im\n");
-    for (int iy = 0; iy < matrix_size; iy++) {
-	    for (int ix = 0; ix < matrix_size; ix++) {
-		     	printf("%d,",right_im(ix,iy));
+		     	printf("%d,",input(ix,iy));
 			    }
 	        printf("\n");
     }

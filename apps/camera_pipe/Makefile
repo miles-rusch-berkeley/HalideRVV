@@ -1,9 +1,27 @@
 include ../support/Makefile.inc
 
-.PHONY: build clean test
+.PHONY: build dump-riscv clean test
 
-build: $(BIN)/$(HL_TARGET)/process
+build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv,\
+											 $(BIN)/$(HL_TARGET)/process)
+test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/out-riscv.print,\
+											$(BIN)/$(HL_TARGET)/out.png)
+dump-riscv: $(BIN)/$(HL_TARGET)/process-riscv.dump
 
+### RISCV BUILD RULES ###
+$(BIN)/%/process-riscv: process.cpp $(BIN)/%/camera_pipe.a $(BIN)/%/camera_pipe_auto_schedule.a
+	@mkdir -p $(@D)
+	$(RISCV_GXX) $(RISCV_GXX_OPTS) $(CXXFLAGS) -I$(BIN)/$* -Wall $^ -o $@ $(LDFLAGS) $(CUDA_LDFLAGS) $(OPENCL_LDFLAGS)
+
+$(BIN)/%/out-riscv.print: $(BIN)/%/process-riscv
+	@mkdir -p $(@D)
+	$(RISCV_SIM) $< 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
+	cat $@
+
+$(BIN)/%/process-riscv.dump: $(BIN)/%/process-riscv
+	$(RISCV_OBJDUMP) $< > $@
+
+### HOST BUILD RULES ###
 TIMING_ITERATIONS ?= 5
 
 $(GENERATOR_BIN)/camera_pipe.generator: camera_pipe_generator.cpp $(GENERATOR_DEPS)
@@ -38,8 +56,6 @@ $(BIN)/%/camera_pipe.mp4: $(BIN)/%/process_viz viz.sh $(HALIDE_TRACE_VIZ) ../../
 
 clean:
 	rm -rf $(BIN)
-
-test: $(BIN)/$(HL_TARGET)/out.png
 
 viz: $(BIN)/$(HL_TARGET)/camera_pipe.mp4
 	$(HL_VIDEOPLAYER) $^

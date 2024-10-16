@@ -2107,6 +2107,7 @@ time_compilation_generator_%: $(BIN_DIR)/%.generator
 	$(TIME_COMPILATION) compile_times_generator.csv make -f $(THIS_MAKEFILE) $(@:time_compilation_generator_%=$(FILTERS_DIR)/%.a)
 
 TEST_APPS=\
+	camera_pipe \
 	lens_blur
 # TEST_APPS=\
 	bilateral_grid \
