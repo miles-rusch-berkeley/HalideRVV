@@ -524,8 +524,8 @@ void CameraPipe::generate() {
             .split(y, yi, yii, 2, TailStrategy::RoundUp)
             .split(yi, yo, yi, strip_size / 2)
             .vectorize(x, 2 * vec, TailStrategy::RoundUp)
-            .unroll(c)
-            .parallel(yo);
+            .unroll(c);
+            // .parallel(yo);
 
         denoised
             .compute_at(processed, yi)

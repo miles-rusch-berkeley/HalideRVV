@@ -15,7 +15,7 @@ $(BIN)/%/process-riscv: process.cpp $(BIN)/%/lens_blur.a $(BIN)/%/lens_blur_auto
 
 $(BIN)/%/out-riscv.print: $(BIN)/%/process-riscv
 	@mkdir -p $(@D)
-	$(RISCV_SIM) $< 128 32 13 0.5 32 3 > $@
+	$(RISCV_SIM) $< 65 32 13 0.5 32 3 > $@
 	cat $@
 
 $(BIN)/%/process-riscv.dump: $(BIN)/%/process-riscv

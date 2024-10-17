@@ -42,8 +42,6 @@ int main(int argc, char **argv) {
         kx(i) = 1.0f/3.0f;
         // ky(i) = 1.0f/3.0f;
     }
-// 0.25203252f*inb(x - 1, y) + 0.49593496f*inb(x, y) + 0.25203252f*inb(x + 1, y);
-//        	rows(x, y) = 0.5483871f*cols(x, y - 1) + 0.01075269f*cols(x, y) + 0.44086022f*
     // check results
     uint64_t n0,nf;
     printf("reading cycles\n");
@@ -57,12 +55,12 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    for (int iy = 0; iy < matrix_size; iy++) {
-        for (int ix = 0; ix < matrix_size; ix++) {
-            printf("%.4g,",output_halide(ix,iy));
-        }
-        printf("output_test\n");
-    }
+    // for (int iy = 0; iy < matrix_size; iy++) {
+    //     for (int ix = 0; ix < matrix_size; ix++) {
+    //         printf("%.4g,",output_halide(ix,iy));
+    //     }
+    //     printf("output_test\n");
+    // }
 
     return 0;
 }

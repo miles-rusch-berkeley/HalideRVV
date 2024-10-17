@@ -26,11 +26,11 @@ XLEN ?= 64
 ifneq (,$(findstring noos,$(HL_TARGET)))
 RISCV_PREFIX ?= $(RISCV)/bin/riscv$(XLEN)-unknown-elf-
 RISCV_TOOLCHAIN_OPTS ?= -I $(RISCV)/riscv64-unknown-elf/include/c++/13.2.0 -specs=htif_nano.specs 
-RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv 
+RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv_zicntr
 else ifneq (,$(findstring linux,$(HL_TARGET)))
 RISCV_PREFIX ?= $(RISCV)/bin/riscv$(XLEN)-unknown-linux-gnu-
 RISCV_TOOLCHAIN_OPTS ?= -I $(RISCV)/riscv64-unknown-linux-gnu/include
-RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv $(RISCV)/riscv64-unknown-elf/bin/pk 
+RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv_zicntr $(RISCV)/riscv64-unknown-elf/bin/pk 
 endif
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
 RISCV_GXX ?= $(RISCV_PREFIX)g++

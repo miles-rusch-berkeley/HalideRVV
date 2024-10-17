@@ -15,8 +15,7 @@ $(BIN)/%/process-riscv: process.cpp $(BIN)/%/sconv_rvv.a $(BIN)/%/sconv_rvv_auto
 
 $(BIN)/%/out-riscv.print: $(BIN)/%/process-riscv
 	@mkdir -p $(@D)
-	$(RISCV_SIM) $< 128 32 13 0.5 32 3 > $@
-	cat $@
+	$(RISCV_SIM) $< 33 > $@
 
 $(BIN)/%/process-riscv.dump: $(BIN)/%/process-riscv
 	$(RISCV_OBJDUMP) $< > $@

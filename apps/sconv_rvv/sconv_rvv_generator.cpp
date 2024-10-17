@@ -64,8 +64,8 @@ public:
                         Var xi("xi"), xo("xo");
                         Var yi("yi"), yo("yo");
                         
-                        output.bound(x, 0, matrix_dim);
-                        output.bound(y, 0, matrix_dim);
+                        // output.bound(x, 0, matrix_dim);
+                        // output.bound(y, 0, matrix_dim);
                         
                         k.compute_root();
                         k.store_root();
