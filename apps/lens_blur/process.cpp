@@ -2,7 +2,7 @@
 #include <cstdio>
 
 #include "lens_blur.h"
-#include "lens_blur_auto_schedule.h"
+// #include "lens_blur_auto_schedule.h"
 
 #include "HalideBuffer.h"
 #include "halide_benchmark.h"
@@ -60,42 +60,42 @@ int main(int argc, char **argv) {
     });
     printf("Manually-tuned time: %gms\n", min_t_manual * 1e3);
 
-    // Auto-scheduled version
-    double min_t_auto = benchmark(timing_iterations, 10, [&]() {
-        lens_blur_auto_schedule(left_im, right_im, slices, focus_depth,
-                                blur_radius_scale, aperture_samples, output);
-        output.device_sync();
-    });
-    printf("Auto-scheduled time: %gms\n", min_t_auto * 1e3);
+    // // Auto-scheduled version
+    // double min_t_auto = benchmark(timing_iterations, 10, [&]() {
+    //     lens_blur_auto_schedule(left_im, right_im, slices, focus_depth,
+    //                             blur_radius_scale, aperture_samples, output);
+    //     output.device_sync();
+    // });
+    // printf("Auto-scheduled time: %gms\n", min_t_auto * 1e3);
 
     // convert_and_save_image(output, argv[7]);
-    printf("left input\n");
-    for (int z = 0; z < rgb; z++) {
-        for (int iy = 0; iy < matrix_size; iy++) {
-            for (int ix = 0; ix < matrix_size; ix++) {
-                printf("%d,",left_im(ix,iy,z));
-            }
-            printf("\n");
-        }
-    }
-    printf("right_im\n");
-    for (int z = 0; z < rgb; z++) {
-        for (int iy = 0; iy < matrix_size; iy++) {
-            for (int ix = 0; ix < matrix_size; ix++) {
-                printf("%d,",right_im(ix,iy,z));
-            }
-            printf("\n");
-        }
-    }
-    printf("output\n");
-    for (int z = 0; z < rgb; z++) {
-        for (int iy = 0; iy < matrix_size; iy++) {
-            for (int ix = 0; ix < matrix_size; ix++) {
-                printf("%f,",output(ix,iy,z));
-            }
-            printf("\n");
-        }
-    }
+    // printf("left input\n");
+    // for (int z = 0; z < rgb; z++) {
+    //     for (int iy = 0; iy < matrix_size; iy++) {
+    //         for (int ix = 0; ix < matrix_size; ix++) {
+    //             printf("%d,",left_im(ix,iy,z));
+    //         }
+    //         printf("\n");
+    //     }
+    // }
+    // printf("right_im\n");
+    // for (int z = 0; z < rgb; z++) {
+    //     for (int iy = 0; iy < matrix_size; iy++) {
+    //         for (int ix = 0; ix < matrix_size; ix++) {
+    //             printf("%d,",right_im(ix,iy,z));
+    //         }
+    //         printf("\n");
+    //     }
+    // }
+    // printf("output\n");
+    // for (int z = 0; z < rgb; z++) {
+    //     for (int iy = 0; iy < matrix_size; iy++) {
+    //         for (int ix = 0; ix < matrix_size; ix++) {
+    //             printf("%f,",output(ix,iy,z));
+    //         }
+    //         printf("\n");
+    //     }
+    // }
     printf("Success!\n");
     return 0;
 }

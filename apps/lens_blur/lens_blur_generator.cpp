@@ -214,8 +214,8 @@ public:
                 .reorder(c, z, x, y)
                 .bound(c, 0, 2)
                 .unroll(c)
-                .vectorize(x, 16)
-                .parallel(y, 4);
+                .vectorize(x, 16);
+                // //.parallel(y, 4);
             cost.compute_at(cost_pyramid_push[0], x)
                 .hoist_storage(cost_pyramid_push[0], y)
                 .vectorize(x);
@@ -237,20 +237,20 @@ public:
             cost_pyramid_pull[1]
                 .compute_root()
                 .fuse(z, c, t)
-                .parallel(t)
+                //.parallel(t)
                 .tile(x, y, xi, yi, 8, 2)
                 .vectorize(xi)
                 .unroll(yi);
             depth.compute_root()
                 .tile(x, y, xi, yi, 8, 2)
                 .vectorize(xi)
-                .unroll(yi)
-                .parallel(y, 8);
+                .unroll(yi);
+                //.parallel(y, 8);
             input_with_alpha.compute_root()
                 .reorder(c, x, y)
                 .unroll(c)
-                .vectorize(x, 8)
-                .parallel(y, 8);
+                .vectorize(x, 8);
+                //.parallel(y, 8);
             worst_case_bokeh_radius_y
                 .compute_at(final, y)
                 .vectorize(x, 8);
@@ -258,8 +258,8 @@ public:
                 .reorder(c, x, y)
                 .bound(c, 0, 3)
                 .unroll(c)
-                .vectorize(x, 8)
-                .parallel(y);
+                .vectorize(x, 8);
+                //.parallel(y);
             worst_case_bokeh_radius
                 .compute_at(final, y)
                 .vectorize(x, 8);

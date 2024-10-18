@@ -16,7 +16,7 @@ static uint64_t read_cycles() {
     uint64_t cycles;
     asm volatile ("rdcycle %0" : "=r" (cycles));
     return cycles;
-    }
+}
 
 int main(int argc, char **argv) {
 

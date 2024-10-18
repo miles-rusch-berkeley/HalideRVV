@@ -1,4 +1,4 @@
-#include "halide_benchmark.h"
+// #include "halide_benchmark.h"
 
 #include "camera_pipe.h"
 #ifndef NO_AUTO_SCHEDULE
@@ -7,20 +7,27 @@
 
 #include "HalideBuffer.h"
 // #include "halide_image_io.h"
-#include "halide_malloc_trace.h"
+// #include "halide_malloc_trace.h"
 
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 
+static uint64_t read_cycles() {
+    uint64_t cycles;
+    asm volatile ("rdcycle %0" : "=r" (cycles));
+    return cycles;
+}
+
 using namespace Halide::Runtime;
-using namespace Halide::Tools;
+// using namespace Halide::Tools;
 
 int main(int argc, char **argv) {
-    if (argc < 8) {
-        printf("Usage: ./process raw.png color_temp gamma contrast sharpen timing_iterations output.png\n"
-               "e.g. ./process raw.png 3700 2.0 50 1.0 5 output.png\n");
+    if (argc < 7) {
+        //TODO: png file input/output
+        printf("Usage: ./process input_dim color_temp gamma contrast sharpen timing_iterations\n"
+               "e.g. ./process 33 3700 2.0 50 1.0 5 \n"); 
         return 0;
     }
 
@@ -41,11 +48,11 @@ int main(int argc, char **argv) {
     fprintf(stderr, "       %d %d\n", input.width(), input.height());
     Buffer<uint8_t, 3> output(((input.width() - 32) / 32) * 32, ((input.height() - 24) / 32) * 32, 3);
 
-#ifdef HL_MEMINFO
-    info(input, "input");
-    stats(input, "input");
-    // dump(input, "input");
-#endif
+// #ifdef HL_MEMINFO
+//     info(input, "input");
+//     stats(input, "input");
+//     // dump(input, "input");
+// #endif
 
     // These color matrices are for the sensor in the Nokia N900 and are
     // taken from the FCam source.
@@ -68,48 +75,47 @@ int main(int argc, char **argv) {
     float gamma = (float)atof(argv[3]);
     float contrast = (float)atof(argv[4]);
     float sharpen = (float)atof(argv[5]);
-    int timing_iterations = atoi(argv[6]);
+    // int timing_iterations = atoi(argv[6]);
     int blackLevel = 25;
     int whiteLevel = 1023;
 
-    double best;
-
-    best = benchmark(timing_iterations, 1, [&]() {
-        camera_pipe(input, matrix_3200, matrix_7000,
-                    color_temp, gamma, contrast, sharpen, blackLevel, whiteLevel,
-                    output);
-        output.device_sync();
-    });
-    fprintf(stderr, "Halide (manual):\t%gus\n", best * 1e6);
+    // check performance
+    uint64_t n0,nf;
+    printf("reading cycles\n");
+    n0 = read_cycles();
+    camera_pipe(input, matrix_3200, matrix_7000,
+                color_temp, gamma, contrast, sharpen, blackLevel, whiteLevel,
+                output);
+    nf = read_cycles();
+    printf("manual halide cycles=%lu,\n",nf-n0);
 
 #ifndef NO_AUTO_SCHEDULE
-    best = benchmark(timing_iterations, 1, [&]() {
-        camera_pipe_auto_schedule(input, matrix_3200, matrix_7000,
-                                  color_temp, gamma, contrast, sharpen, blackLevel, whiteLevel,
-                                  output);
-        output.device_sync();
-    });
-    fprintf(stderr, "Halide (auto):\t%gus\n", best * 1e6);
+    printf("reading cycles\n");
+    n0 = read_cycles();
+    camera_pipe_auto_schedule(input, matrix_3200, matrix_7000,
+                            color_temp, gamma, contrast, 
+                            sharpen, blackLevel, whiteLevel,
+                            output);
+    nf = read_cycles();
+    printf("auto halide cycles=%lu,\n",nf-n0);
 #endif
 
-    printf("input\n");
-    for (int iy = 0; iy < matrix_size; iy++) {
-	    for (int ix = 0; ix < matrix_size; ix++) {
-		     	printf("%d,",input(ix,iy));
-			    }
-	        printf("\n");
-    }
-    fprintf(stderr, "output: %s\n", argv[7]);
-    // convert_and_save_image(output, argv[7]);
-    printf("output\n");
-    for (int z = 0; z < 3; z++) {
-        for (int iy = 0; iy < matrix_size; iy++) {
-            for (int ix = 0; ix < matrix_size; ix++) {
-                printf("%d,",output(ix,iy,z));
-            }
-            printf("\n");
-        }
-    }
+    // printf("input\n");
+    // for (int iy = 0; iy < matrix_size; iy++) {
+	//     for (int ix = 0; ix < matrix_size; ix++) {
+	// 	     	printf("%d,",input(ix,iy));
+	// 		    }
+	//         printf("\n");
+    // }
+    // printf("OUTPUT IMAGE:\n");
+    // for (int z = 0; z < 3; z++) {
+    //     for (int iy = 0; iy < matrix_size; iy++) {
+    //         for (int ix = 0; ix < matrix_size; ix++) {
+    //             printf("%d,",output(ix,iy,z));
+    //         }
+    //         printf("\n");
+    //     }
+    // }
     fprintf(stderr, "        %d %d\n", output.width(), output.height());
 
     printf("Success!\n");

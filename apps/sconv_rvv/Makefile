@@ -5,21 +5,19 @@ include ../support/Makefile.inc
 
 build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv,\
 											 $(BIN)/$(HL_TARGET)/process)
-test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/out-riscv.print,\
+test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv.out,\
 											$(BIN)/$(HL_TARGET)/out.png)
-dump-riscv: $(BIN)/$(HL_TARGET)/process-riscv.dump
+# dump-riscv: $(BIN)/$(HL_TARGET)/process-riscv.dump
 
 $(BIN)/%/process-riscv: process.cpp $(BIN)/%/sconv_rvv.a $(BIN)/%/sconv_rvv_auto_schedule.a
 	@mkdir -p $(@D)
-	$(RISCV_GXX) $(RISCV_GXX_OPTS) $(CXXFLAGS) -I$(BIN)/$* -Wall $^ -o $@ $(LDFLAGS) $(CUDA_LDFLAGS) $(OPENCL_LDFLAGS)
+	$(RISCV_GXX) $(RISCV_GXX_OPTS) $(CXXFLAGS) -I$(BIN)/$* -Wall $^ -o $@ $(LDFLAGS)
 
-$(BIN)/%/out-riscv.print: $(BIN)/%/process-riscv
+$(BIN)/%/process-riscv.out: $(BIN)/%/process-riscv
 	@mkdir -p $(@D)
+	$(RISCV_OBJDUMP) $< > $<.S
 	$(RISCV_SIM) $< 33 > $@
-
-$(BIN)/%/process-riscv.dump: $(BIN)/%/process-riscv
-	$(RISCV_OBJDUMP) $< > $@
-
+	
 $(GENERATOR_BIN)/sconv_rvv.generator: sconv_rvv_generator.cpp $(GENERATOR_DEPS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(filter %.cpp,$^) -o $@ $(LIBHALIDE_LDFLAGS)

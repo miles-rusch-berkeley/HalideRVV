@@ -1,26 +1,24 @@
 include ../support/Makefile.inc
 
-.PHONY: build dump-riscv clean test
+.PHONY: build clean test
 
 build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv,\
 											 $(BIN)/$(HL_TARGET)/process)
-test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/out-riscv.print,\
+test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv.out,\
 											$(BIN)/$(HL_TARGET)/out.png)
-dump-riscv: $(BIN)/$(HL_TARGET)/process-riscv.dump
+
 
 ### RISCV BUILD RULES ###
 $(BIN)/%/process-riscv: process.cpp $(BIN)/%/camera_pipe.a $(BIN)/%/camera_pipe_auto_schedule.a
 	@mkdir -p $(@D)
-	$(RISCV_GXX) $(RISCV_GXX_OPTS) $(CXXFLAGS) -I$(BIN)/$* -Wall $^ -o $@ $(LDFLAGS) $(CUDA_LDFLAGS) $(OPENCL_LDFLAGS)
+	$(RISCV_GXX) $(RISCV_GXX_OPTS) $(CXXFLAGS) -I$(BIN)/$* -Wall $^ -o $@ $(LDFLAGS)
 
-$(BIN)/%/out-riscv.print: $(BIN)/%/process-riscv
+$(BIN)/%/process-riscv.out: $(BIN)/%/process-riscv
 	@mkdir -p $(@D)
-	$(RISCV_SIM) $< 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
-	cat $@
-
-$(BIN)/%/process-riscv.dump: $(BIN)/%/process-riscv
-	$(RISCV_OBJDUMP) $< > $@
-
+	@echo "objump: $(RISCV_OBJDUMP) $< > $<.S"
+	$(RISCV_OBJDUMP) $< > $<.S
+	$(RISCV_SIM) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
+	
 ### HOST BUILD RULES ###
 TIMING_ITERATIONS ?= 5
 

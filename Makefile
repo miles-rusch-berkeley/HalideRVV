@@ -2131,9 +2131,9 @@ TEST_APPS=\
 	stencil_chain \
 	wavelet
 
+DUMP_APPS_DEPS=$(TEST_APPS:%=%dump_app)
 TEST_APPS_DEPS=$(TEST_APPS:%=%_test_app)
 BUILD_APPS_DEPS=$(TEST_APPS:%=%_build_app)
-DUMP_APPS_DEPS=$(TEST_APPS:%=%dump_app)
 
 $(BUILD_APPS_DEPS): distrib
 	@echo Building app $(@:%_build_app=%) for ${HL_TARGET}...
@@ -2152,10 +2152,11 @@ $(TEST_APPS_DEPS): distrib
 		|| exit 1 ; \
 
 $(DUMP_APPS_DEPS): distrib
-	@echo OBJDUMP app $(@:%_test_app=%) for ${HL_TARGET}...
-	@$(MAKE) -C $(ROOT_DIR)/apps/$(@:%_test_app=%) dump-riscv \
+	@echo OBJDUMP app $(@:%_dump_app=%) for ${HL_TARGET}...
+	@echo "Debug: OBJDUMP app $(@:%_dump_app=%) for ${HL_TARGET}..."
+	@$(MAKE) -C $(ROOT_DIR)/apps/$(@:%_dump_app=%) dump-riscv \
 		HALIDE_DISTRIB_PATH=$(CURDIR)/$(DISTRIB_DIR) \
-		BIN_DIR=$(CURDIR)/$(BIN_DIR)/apps/$(@:%_test_app=%)/bin \
+		BIN_DIR=$(CURDIR)/$(BIN_DIR)/apps/$(@:%_dump_app=%)/bin \
 		HL_TARGET=$(HL_TARGET) \
 		|| exit 1 ; \
 
@@ -2165,7 +2166,7 @@ build_apps: $(BUILD_APPS_DEPS)
 test_apps: $(BUILD_APPS_DEPS)
 	$(MAKE) -f $(THIS_MAKEFILE) -j1 $(TEST_APPS_DEPS)
 
-dump_apps: $(BUILD_APPS_DEPS)
+dump_apps: $(TEST_APPS_DEPS)
 	$(MAKE) -f $(THIS_MAKEFILE) -j1 $(DUMP_APPS_DEPS)
 
 build_hannk: distrib
