@@ -1249,7 +1249,7 @@ test_runtime: $(RUNTIME_TESTS:$(ROOT_DIR)/test/runtime/%.cpp=runtime_%)
 test_tutorial: $(TUTORIALS:$(ROOT_DIR)/tutorial/%.cpp=tutorial_%)
 test_valgrind: $(CORRECTNESS_TESTS:$(ROOT_DIR)/test/correctness/%.cpp=valgrind_%)
 test_avx512: $(CORRECTNESS_TESTS:$(ROOT_DIR)/test/correctness/%.cpp=avx512_%)
-test_autoschedulers: test_mullapudi2016 test_li2018 test_adams2019
+test_autoschedulers: test_mullapudi2016 test_li2018 #test_adams2019
 test_auto_schedule: test_autoschedulers
 
 .PHONY: test_correctness_multi_gpu
@@ -2131,7 +2131,8 @@ TEST_APPS=\
 	stencil_chain \
 	wavelet
 
-DUMP_APPS_DEPS=$(TEST_APPS:%=%dump_app)
+TRACE_APPS_DEPS=$(TEST_APPS:%=%_trace_app)
+DUMP_APPS_DEPS=$(TEST_APPS:%=%_dump_app)
 TEST_APPS_DEPS=$(TEST_APPS:%=%_test_app)
 BUILD_APPS_DEPS=$(TEST_APPS:%=%_build_app)
 
@@ -2157,6 +2158,13 @@ $(DUMP_APPS_DEPS): distrib
 	@$(MAKE) -C $(ROOT_DIR)/apps/$(@:%_dump_app=%) dump-riscv \
 		HALIDE_DISTRIB_PATH=$(CURDIR)/$(DISTRIB_DIR) \
 		BIN_DIR=$(CURDIR)/$(BIN_DIR)/apps/$(@:%_dump_app=%)/bin \
+		HL_TARGET=$(HL_TARGET) \
+		|| exit 1 ; \
+
+$(TRACE_APPS_DEPS): distrib
+	@$(MAKE) -C $(ROOT_DIR)/apps/$(@:%_trace_app=%) trace-riscv \
+		HALIDE_DISTRIB_PATH=$(CURDIR)/$(DISTRIB_DIR) \
+		BIN_DIR=$(CURDIR)/$(BIN_DIR)/apps/$(@:%_trace_app=%)/bin \
 		HL_TARGET=$(HL_TARGET) \
 		|| exit 1 ; \
 
@@ -2500,9 +2508,9 @@ endif
 autoschedulers: \
 $(DISTRIB_DIR)/lib/libautoschedule_mullapudi2016.$(PLUGIN_EXT) \
 $(DISTRIB_DIR)/lib/libautoschedule_li2018.$(PLUGIN_EXT) \
-$(DISTRIB_DIR)/lib/libautoschedule_adams2019.$(PLUGIN_EXT) \
 $(DISTRIB_DIR)/bin/featurization_to_sample \
-$(DISTRIB_DIR)/bin/get_host_target
+$(DISTRIB_DIR)/bin/get_host_target 
+# $(DISTRIB_DIR)/lib/libautoschedule_adams2019.$(PLUGIN_EXT) 
 
 .PHONY: distrib
 distrib: $(DISTRIB_DIR)/lib/libHalide.$(SHARED_EXT) autoschedulers

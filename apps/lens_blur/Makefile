@@ -3,22 +3,28 @@ include ../support/Makefile.inc
 
 .PHONY: build clean test
 
-build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv,\
+build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/lens-blur-run,\
 											 $(BIN)/$(HL_TARGET)/process)
-test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv.out,\
+test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/lens-blur-run.out,\
 											$(BIN)/$(HL_TARGET)/out.png)
-# dump-riscv: $(BIN)/$(HL_TARGET)/process-riscv.dump
+dump-riscv: $(BIN)/$(HL_TARGET)/lens-blur-run.S
+trace-riscv: $(BIN)/$(HL_TARGET)/lens-blur-run.trace
 
-$(BIN)/%/process-riscv: process.cpp $(BIN)/%/lens_blur.a $(BIN)/%/lens_blur_auto_schedule.a
+$(BIN)/%/lens-blur-run: process.cpp $(BIN)/%/lens_blur.a $(BIN)/%/lens_blur_auto_schedule.a
 	@mkdir -p $(@D)
 	$(RISCV_GXX) $(RISCV_GXX_OPTS) $(CXXFLAGS) -I$(BIN)/$* -Wall $^ -o $@ $(LDFLAGS)
 
-$(BIN)/%/process-riscv.out: $(BIN)/%/process-riscv
+$(BIN)/%/lens-blur-run.out: $(BIN)/%/lens-blur-run
 	@mkdir -p $(@D)
-	@echo "objump: $(RISCV_OBJDUMP) $< > $<.S"
-	$(RISCV_OBJDUMP) $< > $<.S
 	$(RISCV_SIM) $< 65 32 13 0.5 32 3 > $@
-	
+
+$(BIN)/%/lens-blur-run.S: $(BIN)/%/lens-blur-run
+	@mkdir -p $(@D)
+	$(RISCV_OBJDUMP) $< > $@
+
+$(BIN)/%/lens-blur-run.trace: $(BIN)/%/lens-blur-run
+	@mkdir -p $(@D)
+	$(RISCV_SIM_LOG_TRACE) $< 65 32 13 0.5 32 3 > $@
 
 $(GENERATOR_BIN)/lens_blur.generator: lens_blur_generator.cpp $(GENERATOR_DEPS)
 	@mkdir -p $(@D)

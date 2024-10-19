@@ -2,22 +2,29 @@ include ../support/Makefile.inc
 
 .PHONY: build clean test
 
-build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv,\
+build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/camera-pipe-run,\
 											 $(BIN)/$(HL_TARGET)/process)
-test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/process-riscv.out,\
+test: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/camera-pipe-run.out,\
 											$(BIN)/$(HL_TARGET)/out.png)
-
+dump-riscv: $(BIN)/$(HL_TARGET)/camera-pipe-run.S
+trace-riscv: $(BIN)/$(HL_TARGET)/camera-pipe-run.trace
 
 ### RISCV BUILD RULES ###
-$(BIN)/%/process-riscv: process.cpp $(BIN)/%/camera_pipe.a $(BIN)/%/camera_pipe_auto_schedule.a
+$(BIN)/%/camera-pipe-run: process.cpp $(BIN)/%/camera_pipe.a $(BIN)/%/camera_pipe_auto_schedule.a
 	@mkdir -p $(@D)
 	$(RISCV_GXX) $(RISCV_GXX_OPTS) $(CXXFLAGS) -I$(BIN)/$* -Wall $^ -o $@ $(LDFLAGS)
 
-$(BIN)/%/process-riscv.out: $(BIN)/%/process-riscv
+$(BIN)/%/camera-pipe-run.out: $(BIN)/%/camera-pipe-run
 	@mkdir -p $(@D)
-	@echo "objump: $(RISCV_OBJDUMP) $< > $<.S"
-	$(RISCV_OBJDUMP) $< > $<.S
 	$(RISCV_SIM) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
+	
+$(BIN)/%/camera-pipe-run.trace: $(BIN)/%/camera-pipe-run
+	@mkdir -p $(@D)
+	$(RISCV_SIM_LOG_TRACE) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
+	
+$(BIN)/%/camera-pipe-run.S: $(BIN)/%/camera-pipe-run
+	@mkdir -p $(@D)
+	$(RISCV_OBJDUMP) $< > $<.S
 	
 ### HOST BUILD RULES ###
 TIMING_ITERATIONS ?= 5
