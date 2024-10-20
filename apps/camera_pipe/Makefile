@@ -16,11 +16,11 @@ $(BIN)/%/camera-pipe-run: process.cpp $(BIN)/%/camera_pipe.a $(BIN)/%/camera_pip
 
 $(BIN)/%/camera-pipe-run.out: $(BIN)/%/camera-pipe-run
 	@mkdir -p $(@D)
-	$(RISCV_SIM) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
+	$(RISCV_SIM) $(PK) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
 	
 $(BIN)/%/camera-pipe-run.trace: $(BIN)/%/camera-pipe-run
 	@mkdir -p $(@D)
-	$(RISCV_SIM_LOG_TRACE) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
+	$(RISCV_SIM) -l --log=$@ $(PK) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS)
 	
 $(BIN)/%/camera-pipe-run.S: $(BIN)/%/camera-pipe-run
 	@mkdir -p $(@D)

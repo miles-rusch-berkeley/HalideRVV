@@ -16,7 +16,7 @@ $(BIN)/%/sconv-run: process.cpp $(BIN)/%/sconv_rvv.a $(BIN)/%/sconv_rvv_auto_sch
 
 $(BIN)/%/sconv-run.out: $(BIN)/%/sconv-run
 	@mkdir -p $(@D)
-	$(RISCV_SIM) $< 33 > $@
+	$(RISCV_SIM) $(PK) $< 33 > $@
 	
 $(BIN)/%/sconv-run.S: $(BIN)/%/sconv-run
 	@mkdir -p $(@D)
@@ -24,7 +24,7 @@ $(BIN)/%/sconv-run.S: $(BIN)/%/sconv-run
 	
 $(BIN)/%/sconv-run.trace: $(BIN)/%/sconv-run
 	@mkdir -p $(@D)
-	$(RISCV_SIM_LOG_TRACE) $< 33 > $@
+	$(RISCV_SIM) -l --log=$@ $(PK) $< 33
 	
 $(GENERATOR_BIN)/sconv_rvv.generator: sconv_rvv_generator.cpp $(GENERATOR_DEPS)
 	@mkdir -p $(@D)

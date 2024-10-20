@@ -23,17 +23,10 @@ HL_TARGET ?= host
 
 # RISCV Tools
 XLEN ?= 64
-ifneq (,$(findstring noos,$(HL_TARGET)))
-RISCV_PREFIX ?= $(RISCV)/bin/riscv$(XLEN)-unknown-elf-
-RISCV_TOOLCHAIN_OPTS ?= -I $(RISCV)/riscv64-unknown-elf/include/c++/13.2.0 -I $(RISCV)/riscv64-unknown-linux-gnu/include -specs=htif_nano.specs 
-RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv_zicntr
-RISCV_SIM_LOG_TRACE ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv_zicntr -l --log=$(BIN)/$(HL_TARGET)/process-riscv.trace
-else ifneq (,$(findstring linux,$(HL_TARGET)))
 RISCV_PREFIX ?= $(RISCV)/bin/riscv$(XLEN)-unknown-linux-gnu-
 RISCV_TOOLCHAIN_OPTS ?= -I $(RISCV)/riscv64-unknown-linux-gnu/include
-RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv_zicntr $(RISCV)/riscv64-unknown-elf/bin/pk 
-RISCV_SIM_LOG_TRACE ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv_zicntr -l --log=$(BIN)/$(HL_TARGET)/process-riscv.trace $(RISCV)/riscv64-unknown-elf/bin/pk 
-endif
+RISCV_SIM ?= $(RISCV)/bin/spike --isa=rv$(XLEN)gcv_zicntr
+PK ?= $(RISCV)/riscv64-unknown-elf/bin/pk
 RISCV_GCC ?= $(RISCV_PREFIX)gcc
 RISCV_GXX ?= $(RISCV_PREFIX)g++
 RISCV_COMMON_OPTS ?= $(RISCV_TOOLCHAIN_OPTS) -DPREALLOCATE=1 -mcmodel=medany -static -Os -s -g -ffast-math -fno-common -fno-builtin-printf -fno-tree-loop-distribute-patterns -march=rv$(XLEN)gcv_zfh_zvfh -mabi=lp64d

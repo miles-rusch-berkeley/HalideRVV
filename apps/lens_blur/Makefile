@@ -16,7 +16,7 @@ $(BIN)/%/lens-blur-run: process.cpp $(BIN)/%/lens_blur.a $(BIN)/%/lens_blur_auto
 
 $(BIN)/%/lens-blur-run.out: $(BIN)/%/lens-blur-run
 	@mkdir -p $(@D)
-	$(RISCV_SIM) $< 65 32 13 0.5 32 3 > $@
+	$(RISCV_SIM) $(PK) $< 65 32 13 0.5 32 3 > $@
 
 $(BIN)/%/lens-blur-run.S: $(BIN)/%/lens-blur-run
 	@mkdir -p $(@D)
@@ -24,7 +24,7 @@ $(BIN)/%/lens-blur-run.S: $(BIN)/%/lens-blur-run
 
 $(BIN)/%/lens-blur-run.trace: $(BIN)/%/lens-blur-run
 	@mkdir -p $(@D)
-	$(RISCV_SIM_LOG_TRACE) $< 65 32 13 0.5 32 3 > $@
+	$(RISCV_SIM) -l --log=$@ $(PK) $< 65 32 13 0.5 32 3
 
 $(GENERATOR_BIN)/lens_blur.generator: lens_blur_generator.cpp $(GENERATOR_DEPS)
 	@mkdir -p $(@D)

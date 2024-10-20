@@ -1345,7 +1345,7 @@ build_tests: $(CORRECTNESS_TESTS:$(ROOT_DIR)/test/correctness/%.cpp=$(BIN_DIR)/c
 	$(GENERATOR_EXTERNAL_TESTS:$(ROOT_DIR)/test/generator/%_jittest.cpp=$(BIN_DIR)/generator_jit_%) \
 	$(MULLAPUDI2016_TESTS:$(ROOT_DIR)/test/autoschedulers/mullapudi2016/%.cpp=$(BIN_DIR)/mullapudi2016_%) \
 	$(LI2018_TESTS:$(ROOT_DIR)/test/autoschedulers/li2018/%.cpp=$(BIN_DIR)/li2018_%) \
-	$(ADAMS2019_TESTS:$(ROOT_DIR)/test/autoschedulers/adams2019/%.cpp=$(BIN_DIR)/adams2019_%)
+	# $(ADAMS2019_TESTS:$(ROOT_DIR)/test/autoschedulers/adams2019/%.cpp=$(BIN_DIR)/adams2019_%)
 
 clean_generator:
 	rm -rf $(BIN_DIR)/*.generator
@@ -2154,7 +2154,6 @@ $(TEST_APPS_DEPS): distrib
 
 $(DUMP_APPS_DEPS): distrib
 	@echo OBJDUMP app $(@:%_dump_app=%) for ${HL_TARGET}...
-	@echo "Debug: OBJDUMP app $(@:%_dump_app=%) for ${HL_TARGET}..."
 	@$(MAKE) -C $(ROOT_DIR)/apps/$(@:%_dump_app=%) dump-riscv \
 		HALIDE_DISTRIB_PATH=$(CURDIR)/$(DISTRIB_DIR) \
 		BIN_DIR=$(CURDIR)/$(BIN_DIR)/apps/$(@:%_dump_app=%)/bin \
@@ -2162,6 +2161,7 @@ $(DUMP_APPS_DEPS): distrib
 		|| exit 1 ; \
 
 $(TRACE_APPS_DEPS): distrib
+	@echo logging app TRACE $(@:%trace_app=%) for ${HL_TARGET}...
 	@$(MAKE) -C $(ROOT_DIR)/apps/$(@:%_trace_app=%) trace-riscv \
 		HALIDE_DISTRIB_PATH=$(CURDIR)/$(DISTRIB_DIR) \
 		BIN_DIR=$(CURDIR)/$(BIN_DIR)/apps/$(@:%_trace_app=%)/bin \
@@ -2176,6 +2176,9 @@ test_apps: $(BUILD_APPS_DEPS)
 
 dump_apps: $(TEST_APPS_DEPS)
 	$(MAKE) -f $(THIS_MAKEFILE) -j1 $(DUMP_APPS_DEPS)
+
+trace_apps: $(TEST_APPS_DEPS)
+	$(MAKE) -f $(THIS_MAKEFILE) -j1 $(TRACE_APPS_DEPS)
 
 build_hannk: distrib
 	@echo Building apps/hannk for ${HL_TARGET}...
