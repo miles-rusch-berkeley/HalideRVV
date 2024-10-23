@@ -1,5 +1,7 @@
 include ../support/Makefile.inc
 
+RUN_ARGS = 1024 3700 2.0 50 1.0
+
 .PHONY: build clean test
 
 build: $(if $(findstring riscv,$(HL_TARGET)),$(BIN)/$(HL_TARGET)/camera-pipe-run,\
@@ -16,18 +18,18 @@ $(BIN)/%/camera-pipe-run: process.cpp $(BIN)/%/camera_pipe.a $(BIN)/%/camera_pip
 
 $(BIN)/%/camera-pipe-run.out: $(BIN)/%/camera-pipe-run
 	@mkdir -p $(@D)
-	$(RISCV_SIM) $(PK) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS) > $@
+	$(RISCV_SIM) $(PK) $< $(RUN_ARGS) > $@
 	
 $(BIN)/%/camera-pipe-run.trace: $(BIN)/%/camera-pipe-run
 	@mkdir -p $(@D)
-	$(RISCV_SIM) -l --log=$@ $(PK) $< 33 3700 2.0 50 1.0 $(TIMING_ITERATIONS)
+	$(RISCV_SIM) -l --log-commits --log=$@ $(PK) $< $(RUN_ARGS)
 	
 $(BIN)/%/camera-pipe-run.S: $(BIN)/%/camera-pipe-run
 	@mkdir -p $(@D)
 	$(RISCV_OBJDUMP) $< > $<.S
 	
 ### HOST BUILD RULES ###
-TIMING_ITERATIONS ?= 5
+TIMING_ITERATIONS ?= 2
 
 $(GENERATOR_BIN)/camera_pipe.generator: camera_pipe_generator.cpp $(GENERATOR_DEPS)
 	@mkdir -p $(@D)

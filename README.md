@@ -127,7 +127,7 @@ works well on OS X and Ubuntu.)
 If you want to build it yourself, first check it out from GitHub:
 
 ```
-% git clone --depth 1 --branch llvmorg-16.0.6 https://github.com/llvm/llvm-project.git
+git clone --depth 1 --branch llvmorg-18.1.1 https://github.com/llvm/llvm-project.git
 ```
 
 (If you want to build LLVM 17.x, use branch `release/17.x`; for current trunk,
@@ -137,12 +137,20 @@ Then build it like so:
 
 ```
 % cmake -DCMAKE_BUILD_TYPE=Release \
-        -DLLVM_ENABLE_PROJECTS="clang;lld;clang-tools-extra" \
-        -DLLVM_TARGETS_TO_BUILD="X86;ARM;NVPTX;AArch64;Hexagon;WebAssembly;RISCV" \
+        -DLLVM_ENABLE_PROJECTS="clang;lld" \
+        -DLLVM_TARGETS_TO_BUILD="X86;ARM;WebAssembly;RISCV" \
         -DLLVM_ENABLE_TERMINFO=OFF -DLLVM_ENABLE_ASSERTIONS=ON \
-        -DLLVM_ENABLE_EH=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_BUILD_32_BITS=OFF \
+        -DLLVM_ENABLE_EH=OFF \
+        -DLLVM_ENABLE_RTTI=OFF \
+        -DLLVM_ENABLE_HTTPLIB=OFF \
+        -DLLVM_ENABLE_LIBEDIT=OFF \
+        -DLLVM_ENABLE_LIBXML2=OFF \
+        -DLLVM_ENABLE_TERMINFO=OFF \
+        -DLLVM_ENABLE_ZLIB=OFF \
+        -DLLVM_ENABLE_ZSTD=OFF \
+        -DLLVM_BUILD_32_BITS=OFF \
         -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
-        -S llvm-project/llvm -B llvm-build
+        -G Ninja -S llvm-project/llvm -B llvm-build
 % cmake --build llvm-build
 % cmake --install llvm-build --prefix llvm-install
 ```
@@ -171,6 +179,12 @@ With `LLVM_CONFIG` set (or `llvm-config` in your path), you should be able to
 just run `make` in the root directory of the Halide source tree.
 `make run_tests` will run the JIT test suite, and `make test_apps` will make
 sure all the apps compile and run (but won't check their output).
+
+For RISCV targets, dynamic instruction trace can be generated for some apps with:
+
+```
+HL-TARGET=riscv-64-linux-rvv-vector_bits_256 make trace_apps
+```
 
 There is no `make install`. If you want to make an install package, use CMake.
 

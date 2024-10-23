@@ -5,11 +5,15 @@
 // #include "lens_blur_auto_schedule.h"
 
 #include "HalideBuffer.h"
-#include "halide_benchmark.h"
+// #include "halide_benchmark.h"
 // #include "halide_image_io.h"
 
+static uint64_t read_cycles() {
+    uint64_t cycles;
+    asm volatile ("rdcycle %0" : "=r" (cycles));
+    return cycles;
+}
 using namespace Halide::Runtime;
-using namespace Halide::Tools;
 
 int main(int argc, char **argv) {
     if (argc < 7) {
@@ -21,17 +25,17 @@ int main(int argc, char **argv) {
     // Let the Halide runtime hold onto GPU allocations for
     // intermediates and reuse them instead of eagerly freeing
     // them. cuMemAlloc/cuMemFree is slower than the algorithm!
-    (void)halide_reuse_device_allocations(nullptr, true);  // ignore error: this function will always succeed when second arg is true
+    // (void)halide_reuse_device_allocations(nullptr, true);  // ignore error: this function will always succeed when second arg is true
 
     // Buffer<uint8_t, 3> left_im = load_image(argv[1]);
     // Buffer<uint8_t, 3> right_im = load_image(argv[1]);
     int matrix_size = atoi(argv[1]);
-    int rgb = 3;
-    Buffer<uint8_t, 3> left_im(matrix_size, matrix_size, rgb);
-    Buffer<uint8_t, 3> right_im(matrix_size, matrix_size, rgb);
+    fprintf(stderr, "input dim: %s\n", argv[1]);
+    Buffer<uint8_t, 3> left_im(matrix_size, matrix_size, 3);
+    Buffer<uint8_t, 3> right_im(matrix_size, matrix_size, 3);
 
     // Initialize gradient images
-    for (int z = 0; z < rgb; z++) {
+    for (int z = 0; z < 3; z++) {
         for (int iy = 0; iy < matrix_size; iy++) {
             for (int ix = 0; ix < matrix_size; ix++) {
                 left_im(ix, iy, z) = static_cast<uint8_t>((ix + iy + z) % 256);
@@ -45,32 +49,19 @@ int main(int argc, char **argv) {
     float blur_radius_scale = atof(argv[4]);
     uint32_t aperture_samples = atoi(argv[5]);
     Buffer<float, 3> output(left_im.width(), left_im.height(), 3);
-    int timing_iterations = atoi(argv[6]);
 
+    // check performance
+    uint64_t n0,nf;
+    printf("reading cycles\n");
+    n0 = read_cycles();
     lens_blur(left_im, right_im, slices, focus_depth, blur_radius_scale,
-              aperture_samples, output);
-
-    // Timing code
-
-    // Manually-tuned version
-    double min_t_manual = benchmark(timing_iterations, 10, [&]() {
-        lens_blur(left_im, right_im, slices, focus_depth, blur_radius_scale,
-                  aperture_samples, output);
-        output.device_sync();
-    });
-    printf("Manually-tuned time: %gms\n", min_t_manual * 1e3);
-
-    // // Auto-scheduled version
-    // double min_t_auto = benchmark(timing_iterations, 10, [&]() {
-    //     lens_blur_auto_schedule(left_im, right_im, slices, focus_depth,
-    //                             blur_radius_scale, aperture_samples, output);
-    //     output.device_sync();
-    // });
-    // printf("Auto-scheduled time: %gms\n", min_t_auto * 1e3);
+            aperture_samples, output);
+    nf = read_cycles();
+    printf("manual halide cycles=%lu,\n",nf-n0);
 
     // convert_and_save_image(output, argv[7]);
     // printf("left input\n");
-    // for (int z = 0; z < rgb; z++) {
+    // for (int z = 0; z < 3; z++) {
     //     for (int iy = 0; iy < matrix_size; iy++) {
     //         for (int ix = 0; ix < matrix_size; ix++) {
     //             printf("%d,",left_im(ix,iy,z));
@@ -79,7 +70,7 @@ int main(int argc, char **argv) {
     //     }
     // }
     // printf("right_im\n");
-    // for (int z = 0; z < rgb; z++) {
+    // for (int z = 0; z < 3; z++) {
     //     for (int iy = 0; iy < matrix_size; iy++) {
     //         for (int ix = 0; ix < matrix_size; ix++) {
     //             printf("%d,",right_im(ix,iy,z));
@@ -88,7 +79,7 @@ int main(int argc, char **argv) {
     //     }
     // }
     // printf("output\n");
-    // for (int z = 0; z < rgb; z++) {
+    // for (int z = 0; z < 3; z++) {
     //     for (int iy = 0; iy < matrix_size; iy++) {
     //         for (int ix = 0; ix < matrix_size; ix++) {
     //             printf("%f,",output(ix,iy,z));
