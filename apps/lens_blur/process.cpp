@@ -17,7 +17,7 @@ using namespace Halide::Runtime;
 
 int main(int argc, char **argv) {
     if (argc < 7) {
-        printf("Usage: ./process input.png slices focus_depth blur_radius_scale aperture_samples timing_iterations output.png\n"
+        fprintf(stderr, "Usage: ./process input.png slices focus_depth blur_radius_scale aperture_samples timing_iterations output.png\n"
                "e.g.: ./process input.png 32 13 0.5 32 3 output.png\n");
         return 0;
     }
@@ -35,14 +35,17 @@ int main(int argc, char **argv) {
     Buffer<uint8_t, 3> right_im(matrix_size, matrix_size, 3);
 
     // Initialize gradient images
+    fprintf(stderr, "initialize left and right image inputs\n");
     for (int z = 0; z < 3; z++) {
         for (int iy = 0; iy < matrix_size; iy++) {
             for (int ix = 0; ix < matrix_size; ix++) {
-                left_im(ix, iy, z) = static_cast<uint8_t>((ix + iy + z) % 256);
-                right_im(ix, iy, z) = static_cast<uint8_t>((ix + iy + z) % 256);
+                left_im(ix, iy, z) = static_cast<uint8_t>(ix + iy + z);
+                right_im(ix, iy, z) = static_cast<uint8_t>(ix + iy + z);
             }
         }
     }
+    fprintf(stderr, "%d x %d left input initialized\n", left_im.width(), left_im.height());
+    fprintf(stderr, "%d x %d right input initialized\n", right_im.width(), right_im.height());
 
     uint32_t slices = atoi(argv[2]);
     uint32_t focus_depth = atoi(argv[3]);
@@ -52,41 +55,41 @@ int main(int argc, char **argv) {
 
     // check performance
     uint64_t n0,nf;
-    printf("reading cycles\n");
+    fprintf(stderr, "reading cycles\n");
     n0 = read_cycles();
     lens_blur(left_im, right_im, slices, focus_depth, blur_radius_scale,
             aperture_samples, output);
     nf = read_cycles();
-    printf("manual halide cycles=%lu,\n",nf-n0);
+    fprintf(stderr, "manual halide cycles=%lu,\n",nf-n0);
 
     // convert_and_save_image(output, argv[7]);
-    // printf("left input\n");
+    // fprintf(stderr, "left input\n");
     // for (int z = 0; z < 3; z++) {
     //     for (int iy = 0; iy < matrix_size; iy++) {
     //         for (int ix = 0; ix < matrix_size; ix++) {
-    //             printf("%d,",left_im(ix,iy,z));
+    //             fprintf(stderr, "%d,",left_im(ix,iy,z));
     //         }
-    //         printf("\n");
+    //         fprintf(stderr, "\n");
     //     }
     // }
-    // printf("right_im\n");
+    // fprintf(stderr, "right_im\n");
     // for (int z = 0; z < 3; z++) {
     //     for (int iy = 0; iy < matrix_size; iy++) {
     //         for (int ix = 0; ix < matrix_size; ix++) {
-    //             printf("%d,",right_im(ix,iy,z));
+    //             fprintf(stderr, "%d,",right_im(ix,iy,z));
     //         }
-    //         printf("\n");
+    //         fprintf(stderr, "\n");
     //     }
     // }
-    // printf("output\n");
+    // fprintf(stderr, "output\n");
     // for (int z = 0; z < 3; z++) {
     //     for (int iy = 0; iy < matrix_size; iy++) {
     //         for (int ix = 0; ix < matrix_size; ix++) {
-    //             printf("%f,",output(ix,iy,z));
+    //             fprintf(stderr, "%f,",output(ix,iy,z));
     //         }
-    //         printf("\n");
+    //         fprintf(stderr, "\n");
     //     }
     // }
-    printf("Success!\n");
+    fprintf(stderr, "Success!\n");
     return 0;
 }

@@ -1,6 +1,6 @@
 include ../support/Makefile.inc
 
-RUN_ARGS = 128 32 13 0.5 32 3
+RUN_ARGS = 256 32 13 0.5 32 3
 
 .PHONY: build clean test
 

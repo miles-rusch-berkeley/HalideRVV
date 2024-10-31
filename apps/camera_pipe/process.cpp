@@ -26,7 +26,7 @@ using namespace Halide::Runtime;
 int main(int argc, char **argv) {
     if (argc < 7) {
         //TODO: png file input/output
-        printf("Usage: ./process input_dim color_temp gamma contrast sharpen timing_iterations\n"
+        fprintf(stderr, "Usage: ./process input_dim color_temp gamma contrast sharpen timing_iterations\n"
                "e.g. ./process 33 3700 2.0 50 1.0 5 \n"); 
         return 0;
     }
@@ -39,13 +39,15 @@ int main(int argc, char **argv) {
     // Buffer<uint16_t, 2> input = load_and_convert_image(argv[1]);
     int matrix_size = atoi(argv[1]);
     Buffer<uint16_t, 2> input(matrix_size, matrix_size);
+    
     // Initialize gradient images
+    fprintf(stderr, "initialize left and right image inputs\n");
     for (int iy = 0; iy < matrix_size; iy++) {
         for (int ix = 0; ix < matrix_size; ix++) {
-            input(ix, iy) = static_cast<uint16_t>((ix + iy) % 256);
+            input(ix, iy) = static_cast<uint16_t>(ix + iy);
         }
     }
-    fprintf(stderr, "       %d %d\n", input.width(), input.height());
+    fprintf(stderr, "%d x %d inputs initialized\n", input.width(), input.height());
     Buffer<uint8_t, 3> output(((input.width() - 32) / 32) * 32, ((input.height() - 24) / 32) * 32, 3);
 
 // #ifdef HL_MEMINFO
@@ -81,43 +83,43 @@ int main(int argc, char **argv) {
 
     // check performance
     uint64_t n0,nf;
-    printf("reading cycles\n");
+    fprintf(stderr, "reading cycles\n");
     n0 = read_cycles();
     camera_pipe(input, matrix_3200, matrix_7000,
                 color_temp, gamma, contrast, sharpen, blackLevel, whiteLevel,
                 output);
     nf = read_cycles();
-    printf("manual halide cycles=%lu,\n",nf-n0);
+    fprintf(stderr, "manual halide cycles=%lu,\n",nf-n0);
 
 #ifndef NO_AUTO_SCHEDULE
-    printf("reading cycles\n");
+    fprintf(stderr, "reading cycles\n");
     n0 = read_cycles();
     camera_pipe_auto_schedule(input, matrix_3200, matrix_7000,
                             color_temp, gamma, contrast, 
                             sharpen, blackLevel, whiteLevel,
                             output);
     nf = read_cycles();
-    printf("auto halide cycles=%lu,\n",nf-n0);
+    fprintf(stderr, "auto halide cycles=%lu,\n",nf-n0);
 #endif
 
-    // printf("input\n");
+    // fprintf(stderr, "input\n");
     // for (int iy = 0; iy < matrix_size; iy++) {
 	//     for (int ix = 0; ix < matrix_size; ix++) {
-	// 	     	printf("%d,",input(ix,iy));
+	// 	     	fprintf(stderr, "%d,",input(ix,iy));
 	// 		    }
-	//         printf("\n");
+	//         fprintf(stderr, "\n");
     // }
-    // printf("OUTPUT IMAGE:\n");
+    // fprintf(stderr, "OUTPUT IMAGE:\n");
     // for (int z = 0; z < 3; z++) {
     //     for (int iy = 0; iy < matrix_size; iy++) {
     //         for (int ix = 0; ix < matrix_size; ix++) {
-    //             printf("%d,",output(ix,iy,z));
+    //             fprintf(stderr, "%d,",output(ix,iy,z));
     //         }
-    //         printf("\n");
+    //         fprintf(stderr, "\n");
     //     }
     // }
     fprintf(stderr, "        %d %d\n", output.width(), output.height());
 
-    printf("Success!\n");
+    fprintf(stderr, "Success!\n");
     return 0;
 }
